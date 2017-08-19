@@ -18,6 +18,15 @@ module.exports = {
             options: {
                 presets: ['react']
             },
+        }, {
+            test: /\.css$/,
+            use: [
+                'style-loader',
+                'css-loader',
+            ],
+        }, {
+            test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g)$/,
+            loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
         }],
     },
 
