@@ -9,6 +9,10 @@ const path = require('path');
 // Configuration
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const cors = require('cors');
+
+// CORS middleware
+app.use(cors());
 
 // logging
 app.use(morgan('dev'));
@@ -17,12 +21,18 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 
 // -------------------------
+// Authentication
+const auth = require('./auth.js');
+app.use('/auth', auth.router);
+app.use(auth.attachUser);
+
+// -------------------------
 // Routing
 const router = require('./router.js');
 app.use('/api/v1/', router);
 
 // -------------------------
-// Errow handling
+// Error handling
 app.use((err, req, res, next) => {
     res.status(err.status || 500);
     res.json({
@@ -33,27 +43,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-// -------------------------
-const { API_KEY } = process.env;
-
-const { name } = require('../package.json');
-
-app.get('/auth/trello', (req, res, next) => {
-    res.redirect(
-        `https://trello.com/1/connect?key=${API_KEY}&name=${name}&return_url=http://localhost:3000/auth/callback`
-    );
+app.get('/user', auth.isAuthenticated, (req, res) => {
+    res.json(req.user);
 });
 
-app.get('/auth/callback', (req, res, next) => {
-    res.sendFile(path.resolve(__dirname, 'views/callback.html'));
-});
-
-app.get('/auth/finish', (req, res, next) => {
-    const { oauth_token } = req.query;
-    console.log(oauth_token);
-    res.json({
-        oauth_token,
-    });
+app.get('/', (req, res) => {
+    res.json(req.user);
 });
 
 app.listen(3000);
