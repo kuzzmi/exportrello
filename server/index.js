@@ -1,3 +1,6 @@
+// Reading dotenv file
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -31,7 +34,7 @@ app.use((err, req, res, next) => {
 });
 
 // -------------------------
-const { API_KEY } = require('../config.js') || process.env.TRELLO_API_KEY;
+const { API_KEY } = process.env;
 
 const { name } = require('../package.json');
 
