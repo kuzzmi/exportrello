@@ -1,0 +1,8 @@
+{
+  "name": "exportrello",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:kuzzmi/exportrello.git",
+  "author": "Igor Kuzmenko <igor@kuzzmi.com>",
+  "license": "MIT"
+}
