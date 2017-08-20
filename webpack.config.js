@@ -16,13 +16,25 @@ module.exports = {
                 path.resolve(__dirname, './client/src')
             ],
             options: {
-                presets: ['react']
+                presets: [
+                    'react',
+                ],
+                plugins: [
+                    'transform-object-rest-spread',
+                ],
             },
         }, {
             test: /\.css$/,
             use: [
                 'style-loader',
                 'css-loader',
+            ],
+        }, {
+            test: /\.scss$/,
+            use: [
+                'style-loader',
+                'css-loader',
+                'sass-loader',
             ],
         }, {
             test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g)$/,
