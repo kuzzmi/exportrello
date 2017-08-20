@@ -10,6 +10,12 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
+const mustacheExpress = require('mustache-express');
+
+// Set mustache as a default renderer
+app.engine('mustache', mustacheExpress());
+app.set('view engine', 'mustache');
+app.set('views', __dirname + '/views');
 
 // CORS middleware
 app.use(cors());
@@ -41,14 +47,6 @@ app.use((err, req, res, next) => {
             error: err,
         },
     });
-});
-
-app.get('/user', auth.isAuthenticated, (req, res) => {
-    res.json(req.user);
-});
-
-app.get('/', (req, res) => {
-    res.json(req.user);
 });
 
 app.listen(3000);

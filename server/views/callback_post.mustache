@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <script>
+      window.opener.postMessage({
+        oauth_token: '{{{ params.oauth_token }}}'
+      }, '{{{ target }}}');
+    </script>
+  </head>
+</html>
