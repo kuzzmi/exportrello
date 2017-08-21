@@ -16,6 +16,8 @@ import {
 import Navbar from './Navbar.js';
 import BoardsScreen from './BoardScreen.js';
 import UserScreen from './UserScreen.js';
+import LoginScreen from './LoginScreen.js';
+import Footer from './Footer.js';
 
 const DefaultLayout = ({ component: Component, ...rest }) => (
     <Route { ...rest } render={ matchProps => (
@@ -28,6 +30,7 @@ const DefaultLayout = ({ component: Component, ...rest }) => (
                             <Component { ...matchProps } />
                         </Segment>
                     </Box>
+                    <Footer />
                 </Box>
             </Container>
         </Box>
@@ -152,7 +155,7 @@ class App extends Component {
                             },
                         }), () => {
                             window.localStorage.setItem('oauth_token', oauth_token);
-                            window.location.href = '/';
+                            window.location.href = '/boards';
                             this.authPopup.close();
                             this.initLoad();
                         });
@@ -165,7 +168,7 @@ class App extends Component {
 
     login() {
         if (this.state.auth.oauth_token) {
-            window.location.href = '/';
+            window.location.href = '/boards';
             return;
         }
         this.setState(state => ({
@@ -184,7 +187,7 @@ class App extends Component {
     }
 
     render() {
-        const { /* auth, */ user, boards } = this.state;
+        const { auth, user, boards } = this.state;
 
         // const isAuthenticated = !!auth.oauth_token;
 
@@ -201,6 +204,9 @@ class App extends Component {
                         <DefaultLayout path="/boards" component={() => (
                             <BoardsScreen boards={ boards } onExportClick={ this._exportBoard.bind(this) } />
                         )}/>
+                        <Route path="/login" render={ () => (
+                            <LoginScreen auth={ auth } login={ this.login.bind(this) } />
+                        )} />
                     </Switch>
                 </div>
             </Router>
@@ -208,9 +214,6 @@ class App extends Component {
     }
 }
 
-// <Route path="/login" render={ () => (
-//     <LoginScreen auth={ auth } login={ this.login.bind(this) } />
-// )} />
 // <PrivateRoute
 //     path="/"
 //     exact

@@ -1,4 +1,13 @@
 import React from 'react';
+import Box from 'react-layout-components';
+import Footer from './Footer.js';
+
+import {
+    Segment,
+    Grid,
+    Header,
+    Button,
+} from 'semantic-ui-react';
 
 const LoginScreen = ({ auth, login }) => (
     <Box center fit>
@@ -26,9 +35,7 @@ const LoginScreen = ({ auth, login }) => (
                     </Grid.Column>
                 </Grid>
             </Segment>
-            <Segment textAlign="center">
-                Made by <a href="https://kuzzmi.com">kuzzmi</a>
-            </Segment>
+            <Footer />
         </Segment.Group>
     </Box>
 );
