@@ -47,6 +47,9 @@ router.get('/boards/:id/export/:format', (req, res) => {
                     cards,
                 });
                 break;
+            case 'json':
+                res.json(cards);
+                break;
             case 'csv':
                 json2csv({
                     data: cards,
