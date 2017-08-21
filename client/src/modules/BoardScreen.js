@@ -3,6 +3,7 @@ import moment from 'moment';
 import Box from 'react-layout-components';
 
 import {
+    Dropdown,
     Label,
 
     Icon,
@@ -12,7 +13,7 @@ import {
     Loader,
 } from 'semantic-ui-react';
 
-const BoardsScreen = ({ boards }) => (
+const BoardsScreen = ({ boards, onExportClick }) => (
     <div>
         {
             boards.loading === true &&
@@ -22,14 +23,14 @@ const BoardsScreen = ({ boards }) => (
         }
         {
             boards.data !== null &&
-                <Item.Group>
-                    { boards.data.map(BoardItem) }
+                <Item.Group divided>
+                    { boards.data.map(board => BoardItem(board, onExportClick)) }
                 </Item.Group>
         }
     </div>
 );
 
-const BoardItem = board => (
+const BoardItem = ( board, onExportClick ) => (
     !board.closed &&
     <Item key={ board.id }>
         {
@@ -52,15 +53,24 @@ const BoardItem = board => (
             </Item.Header>
             <Item.Meta>
                 <Label>
-                    Last active
-                    <Label.Detail>{ moment(board.dateLastActivity).fromNow() }</Label.Detail>
+                    Last active { moment(board.dateLastActivity).fromNow() }
                 </Label>
             </Item.Meta>
             <Item.Description>
-                { board.desc || 'No Description' }
+                { board.desc }
             </Item.Description>
             <Item.Extra>
-                Additional Details
+                <Dropdown text="Export as..." button={ true } color="blue" options={[
+                    <Dropdown.Item key="1" onClick={ () => onExportClick(board.id, 'json') }>
+                        JSON
+                    </Dropdown.Item>,
+                    <Dropdown.Item key="2" onClick={ () => onExportClick(board.id, 'csv') }>
+                        CSV
+                    </Dropdown.Item>,
+                    <Dropdown.Item key="3" onClick={ () => onExportClick(board.id, 'markdown') }>
+                        Markdown
+                    </Dropdown.Item>,
+                ]}></Dropdown>
             </Item.Extra>
         </Item.Content>
     </Item>

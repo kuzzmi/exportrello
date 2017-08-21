@@ -48,12 +48,12 @@ const DefaultLayout = ({ component: Component, ...rest }) => (
 // -------------------------
 // Trello API
 const API = {
-    get({ token, endpoint, version = 1 }) {
+    get({ oauth_token, endpoint, version = 1 }) {
         return fetch(
             `http://localhost:3000/api/v${version}/${endpoint}`,
             {
                 headers: {
-                    Authorization: token,
+                    Authorization: oauth_token,
                 },
             }
         );
@@ -97,7 +97,7 @@ class App extends Component {
                 },
             }));
             return API.get({
-                token: oauth_token,
+                oauth_token,
                 endpoint,
             })
                 .then(data => data.json())
@@ -125,6 +125,13 @@ class App extends Component {
 
         this.initLoad = () => {
             this._loadUser().then(this._loadBoards);
+        };
+
+        this._exportBoard = (boardId, format) => {
+            API.get({
+                oauth_token,
+                endpoint: `boards/${boardId}/export/${format}`,
+            });
         };
     }
 
@@ -192,7 +199,7 @@ class App extends Component {
                             <UserScreen user={ user } />
                         )}/>
                         <DefaultLayout path="/boards" component={() => (
-                            <BoardsScreen boards={ boards } />
+                            <BoardsScreen boards={ boards } onExportClick={ this._exportBoard.bind(this) } />
                         )}/>
                     </Switch>
                 </div>
