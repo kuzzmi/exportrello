@@ -10,6 +10,10 @@ module.exports = {
 
     module: {
         rules: [{
+            test: /\.js?$/,
+            loader: 'eslint-loader',
+            enforce: 'pre',
+        }, {
             test: /\.js$/,
             loader: 'babel-loader',
             include: [

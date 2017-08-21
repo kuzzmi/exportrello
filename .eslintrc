@@ -1,0 +1,60 @@
+{
+  "parser": "babel-eslint",
+  "plugins": [
+    "react",
+    "jest"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "globals": {
+  },
+  "env": {
+    "browser": true,
+    "amd": true,
+    "es6": true,
+    "node": true,
+    "jquery": true,
+    "mocha": true,
+    "jest/globals": true
+  },
+  "rules": {
+    "arrow-parens":                  ["error", "as-needed"],
+    "arrow-spacing":                 ["error", { "before": true, "after": true } ],
+    "comma-dangle":                  ["error", "always-multiline"],
+    "eqeqeq":                        ["error", "smart"],
+    "global-strict":                 "off",
+    "indent":                        ["error", 4 , { "SwitchCase": 1 }],
+    "jsx-quotes":                    ["error", "prefer-double"],
+    "keyword-spacing":               ["error", { "before": true, "after": true }],
+    "no-alert":                      "error",
+    "no-cond-assign":                "error",
+    "no-console":                    "warn",
+    "no-debugger":                   "warn",
+    "no-dupe-keys":                  "error",
+    "no-empty-function":             ["error", { "allow": [] }],
+    "no-extra-semi":                 "error",
+    "no-lonely-if":                  "error",
+    "no-mixed-spaces-and-tabs":      "error",
+    "no-multiple-empty-lines":       ["error", { "max": 1, "maxEOF": 1 }],
+    "no-trailing-spaces":            ["error", { "skipBlankLines": true }],
+    "no-undef":                      "error",
+    "no-underscore-dangle":          "off",
+    "no-unreachable":                "warn",
+    "no-unused-vars":                "warn",
+    "no-whitespace-before-property": "error",
+    "one-var":                       ["error", "never"],
+    "quote-props":                   ["error", "as-needed"],
+    "quotes":                        ["warn", "single"],
+    "react/jsx-uses-react":          "warn",
+    "react/jsx-uses-vars":           "warn",
+    "semi":                          ["error", "always", { "omitLastInOneLineBlock": true}],
+    "space-before-blocks":           "error",
+    "space-before-function-paren":   ["error", "never"],
+    "yield-star-spacing":            ["error", "after"],
+  }
+}
