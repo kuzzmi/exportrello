@@ -1,25 +1,29 @@
 import React, { Component } from 'react';
-import Box from 'react-layout-components';
+import Box, { Container } from 'react-layout-components';
 
 import {
     Button,
-    Form,
-    Grid,
     Header,
     Image,
-    Message,
     Segment,
+    Grid,
+
+    Item,
+
+    Dimmer,
+    Loader,
 } from 'semantic-ui-react';
 
 // Routing
 import {
   BrowserRouter as Router,
   Route,
-  Link
+  Link,
+  Redirect,
 } from 'react-router-dom';
 
 const LoginScreen = ({ auth, login }) => (
-    <Box justifyContent="center" style={{ backgroundColor: '#fafafa' }} alignItems="center" fit>
+    <Box center fit>
         <Segment.Group>
             <Segment size="huge">
                 <Grid
@@ -51,9 +55,87 @@ const LoginScreen = ({ auth, login }) => (
     </Box>
 );
 
-const UserScreen = ({ user }) => (
-    <Box>
+const BoardItem = board => (
+    <Item key={ board.id }>
+        {
+            board.prefs.backgroundImageScaled &&
+            <Item.Image src={ board.prefs.backgroundImageScaled[0].url } />
+        }
+    </Item>
+);
+
+const UserScreen = ({
+    user,
+    boards,
+}) => (
+    <Box fit>
+        <Container padding={ 20 } fit>
+            {
+                ( user.data !== null ) &&
+                <Box fit>
+                    <Box column>
+                        <Segment>
+                            <Image shape="rounded" src={ `https://trello-avatars.s3.amazonaws.com/${ user.data.avatarHash }/170.png` }></Image>
+                            <Header as="h4" color="blue" textAlign="center">
+                                { user.data.fullName }
+                            </Header>
+                        </Segment>
+                    </Box>
+                    <Box column fit style={{ marginLeft: 20 }}>
+                        <Segment.Group style={{
+                            height: '100%',
+                            overflow: 'hidden',
+                            display: 'flex',
+                        }}>
+                            <Segment>
+                                <Header as="h2" color="blue" textAlign="center">
+                                    Your boards
+                                </Header>
+                            </Segment>
+                            <Segment style={{
+                                height: '100%',
+                                display: 'flex',
+                                flex: 1,
+                            }}>
+                                {
+                                    boards.loading === true &&
+                                        <Dimmer inverted active>
+                                            <Loader inverted>Loading boards</Loader>
+                                        </Dimmer>
+                                }
+                                {
+                                    boards.data !== null &&
+                                        <Item.Group style={{
+                                            overflow: 'auto',
+                                            flex: 1,
+                                        }}>
+                                        { boards.data.map(BoardItem) }
+                                        </Item.Group>
+                                }
+                            </Segment>
+                        </Segment.Group>
+                    </Box>
+                </Box>
+            }
+            {
+                user.loading === true &&
+                    <Dimmer inverted active>
+                        <Loader inverted size="huge">Loading</Loader>
+                    </Dimmer>
+            }
+        </Container>
     </Box>
+);
+
+const PrivateRoute = ({ component: Component, isAuthenticated, ...rest }) => (
+    <Route { ...rest } render={ props => (
+        isAuthenticated ?
+            <Component { ...props } /> :
+            <Redirect to={{
+                pathname: '/login',
+                state: { from: props.location }
+            }}/>
+    )} />
 );
 
 // API
@@ -87,30 +169,35 @@ class App extends Component {
                 loading: false,
                 error: false,
             },
+            boards: {
+                data: null,
+                loading: false,
+                error: false,
+            },
         };
 
         this._tokenPresent = () => {
             return !!this.state.auth.oauth_token;
         };
 
-        this._loadData = () => {
+        const load = ({ entity, endpoint }) => () => {
             this.setState(state => ({
                 ...state,
-                user: {
+                [entity]: {
                     data: null,
                     loading: true,
                     error: false,
                 },
             }));
-            API.get({
+            return API.get({
                 token: oauth_token,
-                endpoint: 'user',
+                endpoint,
             })
             .then(data => data.json())
             .then(data => {
                 this.setState(state => ({
                     ...state,
-                    user: {
+                    [entity]: {
                         data,
                         loading: false,
                         error: false,
@@ -118,11 +205,25 @@ class App extends Component {
                 }));
             });
         };
+
+        this._loadUser = load({
+            entity: 'user',
+            endpoint: 'user',
+        });
+
+        this._loadBoards = load({
+            entity: 'boards',
+            endpoint: 'boards',
+        });
+
+        this.initLoad = () => {
+            this._loadUser().then(this._loadBoards);
+        };
     }
 
     componentDidMount() {
         if (this._tokenPresent()) {
-            this._loadData();
+            this.initLoad();
         } else {
             window.addEventListener(
                 'message',
@@ -137,8 +238,9 @@ class App extends Component {
                             },
                         }), () => {
                             window.localStorage.setItem('oauth_token', oauth_token);
+                            window.location.href = '/';
                             this.authPopup.close();
-                            this._loadData();
+                            this.initLoad();
                         });
                     }
                 },
@@ -149,6 +251,7 @@ class App extends Component {
 
     login() {
         if (this.state.auth.oauth_token) {
+            window.location.href = '/';
             return;
         }
         this.setState(state => ({
@@ -167,14 +270,20 @@ class App extends Component {
     }
 
     render() {
-        const { auth } = this.state;
+        const { auth, user, boards } = this.state;
+
+        const isAuthenticated = !!auth.oauth_token;
 
         return (
             <Router>
-                <Box fit>
-                    <Route path="/" exact render={ () => (
-                        <UserScreen />
-                    )} />
+                <Box style={{ backgroundColor: '#fafafa' }} fit>
+                    <PrivateRoute
+                        path="/"
+                        exact
+                        isAuthenticated={ isAuthenticated }
+                        component={ () => (
+                            <UserScreen user={ user } boards={ boards } />
+                        )} />
                     <Route path="/login" render={ () => (
                         <LoginScreen auth={ auth } login={ this.login.bind(this) } />
                     )} />

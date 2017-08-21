@@ -1,23 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const Trello = require('./trello.js');
 
-const request = require('request-promise-native');
-
-// Trello API
-//members/me
-const API = {
-    get({ oauth_token, endpoint }) {
-        return request({
-            uri: `https://api.trello.com/1/${endpoint}`,
-            qs: {
-                key: API_KEY,
-                token: oauth_token,
-            },
-            json: true,
-        });
-    },
-};
 
 // -------------------------
 // Authentication and authorization
@@ -36,7 +21,7 @@ const attachUser = (req, res, next) => {
         req.user = user;
         next();
     } else if (oauth_token && !user) {
-        API.get({
+        Trello.get({
             oauth_token,
             endpoint: 'members/me',
         }).then(data => {
@@ -83,7 +68,7 @@ router.get('/callback', (req, res, next) => {
 router.get('/finish', (req, res) => {
     const { oauth_token } = req.query;
 
-    API.get({
+    Trello.get({
         oauth_token,
         endpoint: 'members/me',
     }).then(data => {
