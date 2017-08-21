@@ -1,152 +1,59 @@
 import React, { Component } from 'react';
 import Box, { Container } from 'react-layout-components';
 
-import {
-    Button,
-    Header,
-    Image,
-    Segment,
-    Grid,
-
-    Item,
-
-    Dimmer,
-    Loader,
-} from 'semantic-ui-react';
-
 // Routing
 import {
-  BrowserRouter as Router,
-  Route,
-  Link,
-  Redirect,
+    BrowserRouter as Router,
+    Route,
+    // Redirect,
+    Switch,
 } from 'react-router-dom';
 
-const LoginScreen = ({ auth, login }) => (
-    <Box center fit>
-        <Segment.Group>
-            <Segment size="huge">
-                <Grid
-                    textAlign="center"
-                    style={{ height: '100%' }}
-                    verticalAlign="middle">
-                    <Grid.Column style={{ maxWidth: 450 }}>
-                        <Header as="h1" color="blue" textAlign="center">
-                            ExporTrello
-                        </Header>
-                        <p>
-                            This application is made for exporting your
-                            Trello boards as CSV, or as Markdown.
-                        </p>
-                        <Button
-                            loading={ auth.loading }
-                            color="blue"
-                            size="large"
-                            onClick={ login }>
-                            Login in with Trello
-                        </Button>
-                    </Grid.Column>
-                </Grid>
-            </Segment>
-            <Segment textAlign="center">
-                Made by <a href="https://kuzzmi.com">kuzzmi</a>
-            </Segment>
-        </Segment.Group>
-    </Box>
-);
+import {
+    Segment,
+} from 'semantic-ui-react';
 
-const BoardItem = board => (
-    <Item key={ board.id }>
-        {
-            board.prefs.backgroundImageScaled &&
-            <Item.Image src={ board.prefs.backgroundImageScaled[0].url } />
-        }
-    </Item>
-);
+import Navbar from './Navbar.js';
+import BoardsScreen from './BoardScreen.js';
+import UserScreen from './UserScreen.js';
 
-const UserScreen = ({
-    user,
-    boards,
-}) => (
-    <Box fit>
-        <Container padding={ 20 } fit>
-            {
-                ( user.data !== null ) &&
-                <Box fit>
-                    <Box column>
-                        <Segment>
-                            <Image shape="rounded" src={ `https://trello-avatars.s3.amazonaws.com/${ user.data.avatarHash }/170.png` }></Image>
-                            <Header as="h4" color="blue" textAlign="center">
-                                { user.data.fullName }
-                            </Header>
+const DefaultLayout = ({ component: Component, ...rest }) => (
+    <Route { ...rest } render={ matchProps => (
+        <Box fit>
+            <Container padding={ 20 } fit>
+                <Box column fit>
+                    <Navbar />
+                    <Box fit>
+                        <Segment style={{ overflow: 'auto', flex: 1 }}>
+                            <Component { ...matchProps } />
                         </Segment>
                     </Box>
-                    <Box column fit style={{ marginLeft: 20 }}>
-                        <Segment.Group style={{
-                            height: '100%',
-                            overflow: 'hidden',
-                            display: 'flex',
-                        }}>
-                            <Segment>
-                                <Header as="h2" color="blue" textAlign="center">
-                                    Your boards
-                                </Header>
-                            </Segment>
-                            <Segment style={{
-                                height: '100%',
-                                display: 'flex',
-                                flex: 1,
-                            }}>
-                                {
-                                    boards.loading === true &&
-                                        <Dimmer inverted active>
-                                            <Loader inverted>Loading boards</Loader>
-                                        </Dimmer>
-                                }
-                                {
-                                    boards.data !== null &&
-                                        <Item.Group style={{
-                                            overflow: 'auto',
-                                            flex: 1,
-                                        }}>
-                                        { boards.data.map(BoardItem) }
-                                        </Item.Group>
-                                }
-                            </Segment>
-                        </Segment.Group>
-                    </Box>
                 </Box>
-            }
-            {
-                user.loading === true &&
-                    <Dimmer inverted active>
-                        <Loader inverted size="huge">Loading</Loader>
-                    </Dimmer>
-            }
-        </Container>
-    </Box>
-);
-
-const PrivateRoute = ({ component: Component, isAuthenticated, ...rest }) => (
-    <Route { ...rest } render={ props => (
-        isAuthenticated ?
-            <Component { ...props } /> :
-            <Redirect to={{
-                pathname: '/login',
-                state: { from: props.location }
-            }}/>
+            </Container>
+        </Box>
     )} />
 );
 
-// API
+// const PrivateRoute = ({ component: Component, isAuthenticated, ...rest }) => (
+//     <Route { ...rest } render={ props => (
+//         isAuthenticated ?
+//             <Component { ...props } /> :
+//             <Redirect to={{
+//                 pathname: '/login',
+//                 state: { from: props.location }
+//             }}/>
+//     )} />
+// );
 
+// -------------------------
+// Trello API
 const API = {
     get({ token, endpoint, version = 1 }) {
         return fetch(
             `http://localhost:3000/api/v${version}/${endpoint}`,
             {
                 headers: {
-                    'Authorization': token,
+                    Authorization: token,
                 },
             }
         );
@@ -193,17 +100,17 @@ class App extends Component {
                 token: oauth_token,
                 endpoint,
             })
-            .then(data => data.json())
-            .then(data => {
-                this.setState(state => ({
-                    ...state,
-                    [entity]: {
-                        data,
-                        loading: false,
-                        error: false,
-                    },
-                }));
-            });
+                .then(data => data.json())
+                .then(data => {
+                    this.setState(state => ({
+                        ...state,
+                        [entity]: {
+                            data,
+                            loading: false,
+                            error: false,
+                        },
+                    }));
+                });
         };
 
         this._loadUser = load({
@@ -270,27 +177,39 @@ class App extends Component {
     }
 
     render() {
-        const { auth, user, boards } = this.state;
+        const { /* auth, */ user, boards } = this.state;
 
-        const isAuthenticated = !!auth.oauth_token;
+        // const isAuthenticated = !!auth.oauth_token;
 
         return (
             <Router>
-                <Box style={{ backgroundColor: '#fafafa' }} fit>
-                    <PrivateRoute
-                        path="/"
-                        exact
-                        isAuthenticated={ isAuthenticated }
-                        component={ () => (
-                            <UserScreen user={ user } boards={ boards } />
-                        )} />
-                    <Route path="/login" render={ () => (
-                        <LoginScreen auth={ auth } login={ this.login.bind(this) } />
-                    )} />
-                </Box>
+                <div style={{
+                    backgroundColor: '#fafafa',
+                    height: '100%',
+                }}>
+                    <Switch>
+                        <DefaultLayout path="/user" component={() => (
+                            <UserScreen user={ user } />
+                        )}/>
+                        <DefaultLayout path="/boards" component={() => (
+                            <BoardsScreen boards={ boards } />
+                        )}/>
+                    </Switch>
+                </div>
             </Router>
         );
     }
 }
+
+// <Route path="/login" render={ () => (
+//     <LoginScreen auth={ auth } login={ this.login.bind(this) } />
+// )} />
+// <PrivateRoute
+//     path="/"
+//     exact
+//     isAuthenticated={ isAuthenticated }
+//     component={ () => (
+//         <UserScreen user={ user } boards={ boards } />
+//     )} />
 
 export default App;
