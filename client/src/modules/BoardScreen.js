@@ -4,10 +4,11 @@ import Box from 'react-layout-components';
 
 import {
     Dropdown,
-    Label,
+    Menu,
 
     Icon,
-    Item,
+    Image,
+    Card,
 
     Dimmer,
     Loader,
@@ -23,44 +24,45 @@ const BoardsScreen = ({ boards, onExportClick }) => (
         }
         {
             boards.data !== null &&
-                <Item.Group divided>
+                <Card.Group itemsPerRow={ 4 } stackable={ true }>
                     { boards.data.map(board => BoardItem(board, onExportClick)) }
-                </Item.Group>
+                </Card.Group>
         }
     </div>
 );
 
 const BoardItem = ( board, onExportClick ) => (
     !board.closed &&
-    <Item key={ board.id }>
+    <Card key={ board.id }>
         {
             board.prefs.backgroundImageScaled ?
-                <Item.Image shape="rounded" src={ board.prefs.backgroundImageScaled[0].url } /> :
-                <Item.Image shape="rounded">
+                <Image src={ board.prefs.backgroundImageScaled[1].url } /> :
+                <Image>
                     <Box style={{
+                        height: 192,
                         backgroundColor: board.prefs.backgroundColor,
                         borderRadius: '.125rem',
                     }} fit />
-                </Item.Image>
+                </Image>
         }
-        <Item.Content>
-            <Item.Header as="a">
+        <Card.Content>
+            <Card.Header as="a">
                 <Icon
                     color={ board.starred ? 'yellow': 'grey' }
                     name={ board.starred ? 'star': 'empty star' }
                 />
                 { board.name }
-            </Item.Header>
-            <Item.Meta>
-                <Label>
-                    Last active { moment(board.dateLastActivity).fromNow() }
-                </Label>
-            </Item.Meta>
-            <Item.Description>
+            </Card.Header>
+            <Card.Meta>
+                Last active { moment(board.dateLastActivity).fromNow() }
+            </Card.Meta>
+            <Card.Description>
                 { board.desc }
-            </Item.Description>
-            <Item.Extra>
-                <Dropdown text="Export as..." button={ true } color="blue" options={[
+            </Card.Description>
+        </Card.Content>
+        <Menu attached="bottom">
+            <Dropdown text="Export as..." item upward
+                options={[
                     <Dropdown.Item key="1" onClick={ () => onExportClick(board.id, 'json') }>
                         JSON
                     </Dropdown.Item>,
@@ -70,10 +72,9 @@ const BoardItem = ( board, onExportClick ) => (
                     <Dropdown.Item key="3" onClick={ () => onExportClick(board.id, 'markdown') }>
                         Markdown
                     </Dropdown.Item>,
-                ]}></Dropdown>
-            </Item.Extra>
-        </Item.Content>
-    </Item>
+                ]} />
+        </Menu>
+    </Card>
 );
 
 export default BoardsScreen;

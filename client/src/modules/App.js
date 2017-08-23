@@ -5,7 +5,7 @@ import Box, { Container } from 'react-layout-components';
 import {
     BrowserRouter as Router,
     Route,
-    // Redirect,
+    Redirect,
     Switch,
 } from 'react-router-dom';
 
@@ -17,36 +17,35 @@ import Navbar from './Navbar.js';
 import BoardsScreen from './BoardScreen.js';
 import UserScreen from './UserScreen.js';
 import LoginScreen from './LoginScreen.js';
+import ExportModal from './ExportModal.js';
 import Footer from './Footer.js';
 
 const DefaultLayout = ({ component: Component, ...rest }) => (
-    <Route { ...rest } render={ matchProps => (
-        <Box fit>
-            <Container padding={ 20 } fit>
-                <Box column fit>
-                    <Navbar />
-                    <Box fit>
-                        <Segment style={{ overflow: 'auto', flex: 1 }}>
-                            <Component { ...matchProps } />
-                        </Segment>
-                    </Box>
-                    <Footer />
+    <Box fit>
+        <Container padding={ 20 } fit>
+            <Box column fit>
+                <Navbar />
+                <Box fit>
+                    <Segment style={{ overflow: 'auto', flex: 1 }}>
+                        <Component { ...rest } />
+                    </Segment>
                 </Box>
-            </Container>
-        </Box>
-    )} />
+                <Footer />
+            </Box>
+        </Container>
+    </Box>
 );
 
-// const PrivateRoute = ({ component: Component, isAuthenticated, ...rest }) => (
-//     <Route { ...rest } render={ props => (
-//         isAuthenticated ?
-//             <Component { ...props } /> :
-//             <Redirect to={{
-//                 pathname: '/login',
-//                 state: { from: props.location }
-//             }}/>
-//     )} />
-// );
+const PrivateRoute = ({ component, isAuthenticated, ...rest }) => (
+    <Route { ...rest } render={ props => (
+        isAuthenticated ?
+            <DefaultLayout component={ component } { ...props } /> :
+            <Redirect to={{
+                pathname: '/login',
+                state: { from: props.location },
+            }}/>
+    )} />
+);
 
 // -------------------------
 // Trello API
@@ -83,6 +82,10 @@ class App extends Component {
                 data: null,
                 loading: false,
                 error: false,
+            },
+            exportModal: {
+                open: false,
+                content: '',
             },
         };
 
@@ -131,10 +134,43 @@ class App extends Component {
         };
 
         this._exportBoard = (boardId, format) => {
+            if (format === 'csv') {
+                window.open(
+                    `http://localhost:3000/api/v1/boards/${boardId}/export/${format}?oauth_token=${oauth_token}`,
+                    '_blank'
+                );
+                return;
+            }
+
+            this.setState(state => ({
+                ...state,
+                exportModal: {
+                    open: true,
+                    loading: true,
+                },
+            }));
             API.get({
                 oauth_token,
                 endpoint: `boards/${boardId}/export/${format}`,
-            });
+            })
+                .then(data => data.text())
+                .then(data => {
+                    switch (format) {
+                        case 'markdown':
+                        case 'json':
+                            this.setState(state => ({
+                                ...state,
+                                exportModal: {
+                                    ...state.exportModal,
+                                    loading: false,
+                                    content: data,
+                                },
+                            }));
+                            break;
+                        default:
+                            break;
+                    }
+                });
         };
     }
 
@@ -186,10 +222,21 @@ class App extends Component {
         );
     }
 
-    render() {
-        const { auth, user, boards } = this.state;
+    closeExportModal() {
+        this.setState(state => ({
+            ...state,
+            exportModal: {
+                open: false,
+                loading: false,
+                content: '',
+            },
+        }));
+    }
 
-        // const isAuthenticated = !!auth.oauth_token;
+    render() {
+        const { auth, user, boards, exportModal } = this.state;
+
+        const isAuthenticated = !!auth.oauth_token;
 
         return (
             <Router>
@@ -198,28 +245,31 @@ class App extends Component {
                     height: '100%',
                 }}>
                     <Switch>
-                        <DefaultLayout path="/user" component={() => (
-                            <UserScreen user={ user } />
-                        )}/>
-                        <DefaultLayout path="/boards" component={() => (
-                            <BoardsScreen boards={ boards } onExportClick={ this._exportBoard.bind(this) } />
-                        )}/>
+                        <PrivateRoute
+                            path="/user"
+                            isAuthenticated={ isAuthenticated }
+                            component={() => (
+                                <UserScreen user={ user } />
+                            )}/>
+                        <PrivateRoute
+                            path="/boards"
+                            isAuthenticated={ isAuthenticated }
+                            component={() => (
+                                <BoardsScreen boards={ boards } onExportClick={ this._exportBoard.bind(this) } />
+                            )}/>
                         <Route path="/login" render={ () => (
                             <LoginScreen auth={ auth } login={ this.login.bind(this) } />
                         )} />
+                        <Redirect to="/boards" />
                     </Switch>
+                    <ExportModal
+                        exportModal={ exportModal }
+                        onClose={ this.closeExportModal.bind(this) }
+                    />
                 </div>
             </Router>
         );
     }
 }
-
-// <PrivateRoute
-//     path="/"
-//     exact
-//     isAuthenticated={ isAuthenticated }
-//     component={ () => (
-//         <UserScreen user={ user } boards={ boards } />
-//     )} />
 
 export default App;
