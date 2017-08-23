@@ -3,7 +3,6 @@ const router = express.Router();
 const path = require('path');
 const Trello = require('./trello.js');
 
-
 // -------------------------
 // Authentication and authorization
 const { API_KEY } = process.env;
@@ -14,7 +13,8 @@ const { name } = require('../package.json');
 // Enhance request with user data if a header
 // is provided
 const attachUser = (req, res, next) => {
-    const oauth_token = req.headers.authorization;
+    const oauth_token =
+        req.headers.authorization || req.query.oauth_token;
     const user = users[oauth_token];
 
     if (oauth_token && user) {
@@ -45,7 +45,7 @@ const isAuthenticated = (req, res, next) => {
     }
 };
 
-router.get('/trello', (req, res, next) => {
+router.get('/trello', (req, res) => {
     if (!req.user) {
         res.redirect(
             `https://trello.com/1/connect?key=${API_KEY}&name=${name}&return_url=http://localhost:3000/auth/callback`
@@ -61,7 +61,7 @@ router.get('/trello', (req, res, next) => {
     }
 });
 
-router.get('/callback', (req, res, next) => {
+router.get('/callback', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'views/callback.html'));
 });
 
@@ -85,7 +85,6 @@ router.get('/finish', (req, res) => {
         throw err;
     });
 });
-
 
 module.exports = {
     router,
