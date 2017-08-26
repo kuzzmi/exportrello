@@ -21,17 +21,16 @@ const attachUser = (req, res, next) => {
         req.user = user;
         next();
     } else if (oauth_token && !user) {
-        Trello.get({
-            oauth_token,
-            endpoint: 'members/me',
-        }).then(data => {
-            data.oauth_token = oauth_token;
-            users[oauth_token] = data;
-            req.user = data;
-            next();
-        }, err => {
-            next(err);
-        });
+        Trello
+            .getCurrentUser({ oauth_token })
+            .then(data => {
+                data.oauth_token = oauth_token;
+                users[oauth_token] = data;
+                req.user = data;
+                next();
+            }).catch(err => {
+                next(err);
+            });
     } else {
         next();
     }
@@ -65,24 +64,14 @@ router.get('/callback', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'views/callback.html'));
 });
 
-router.get('/finish', (req, res) => {
+router.get('/finish', attachUser, (req, res) => {
     const { oauth_token } = req.query;
-
-    Trello.get({
-        oauth_token,
-        endpoint: 'members/me',
-    }).then(data => {
-        data.oauth_token = oauth_token;
-        users[oauth_token] = data;
-        res.render('callback_post.mustache', {
-            params: {
-                oauth_token,
-            },
-            // TODO: fix to a real url
-            target: '*',
-        });
-    }, err => {
-        throw err;
+    res.render('callback_post.mustache', {
+        params: {
+            oauth_token,
+        },
+        // TODO: fix to a real url
+        target: '*',
     });
 });
 

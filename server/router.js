@@ -5,8 +5,6 @@ const auth = require('./auth.js');
 const Trello = require('./trello.js');
 const json2csv = require('json2csv');
 
-const { normalize } = require('./utils.js');
-
 // Enables route-wide authentication
 router.use(auth.isAuthenticated);
 
@@ -16,11 +14,8 @@ router.get('/user', (req, res) => {
 
 router.get('/boards', (req, res) => {
     const { oauth_token } = req.user;
-    Trello.get({
-        oauth_token,
-        endpoint: 'members/me/boards',
-    }).then(data => {
-        res.json(data);
+    Trello.getUserBoards({ oauth_token }).then(boards => {
+        res.json(boards);
     });
 });
 
@@ -30,39 +25,12 @@ router.get('/boards/:id/export/:format', (req, res) => {
     const { id, format } = req.params;
     const { oauth_token } = req.user;
 
-    Trello.get({
-        oauth_token,
-        endpoint: `boards/${id}`,
-        options: {
-            pluginData: true,
-        },
-    }).then(board => {
-
-        // TODO:
-        // This should also be more robust and potentially
-        // support more different power-ups, but probably
-        // can be moved to a "suggestions" form.
-        board.pluginData = board.pluginData.map(data => {
-            if (data.value) {
-                try {
-                    data.value = JSON.parse(data.value);
-                    return data;
-                } catch (e) {
-                    return data;
-                }
-            }
-        });
-
+    Trello.getBoardById({ oauth_token, id }).then(board => {
         // TODO:
         // Simplify this somehow
-        return Trello.get({
+        return Trello.getCardsByBoardId({
             oauth_token,
-            endpoint: `boards/${id}/cards`,
-            options: {
-                pluginData: true,
-                checklists: 'all',
-                checklist_fields: 'all',
-            },
+            id,
         }).then(cards => {
             return cards.map(card => {
                 // Here we modify the pluginData of a card it a way that it's
@@ -71,9 +39,9 @@ router.get('/boards/:id/export/:format', (req, res) => {
                     if (data.value) {
                         try {
                             // Get list of fields as a map with id as key
-                            const normalizedPluginData = normalize(
-                                board.pluginData[0].value.fields, 'id'
-                            );
+                            // const normalizedPluginData = normalize(
+                            //     board.pluginData[0].value.fields, 'id'
+                            // );
 
                             // Try to parse pluginData value, as Custom Fields
                             // power-up uses JSON stringified
@@ -83,8 +51,8 @@ router.get('/boards/:id/export/:format', (req, res) => {
                             // keys from board pluginData
                             // data.value
                             Object.keys(jsonData).reduce((acc, cur) => {
-                                if (normalizedPluginData[cur]) {
-                                    card[normalizedPluginData[cur].n] = jsonData[cur];
+                                if (board.pluginData[cur]) {
+                                    card[board.pluginData[cur].n] = jsonData[cur];
                                 }
                                 return acc;
                             }, {});
@@ -136,8 +104,10 @@ router.get('/boards/:id/export/:format', (req, res) => {
                 break;
             default:
                 // If nothing matched
-                res.send(415, 'Unsupported format requested');
+                res.status(415).send('Unsupported format requested');
         }
+    }).catch(err => {
+        throw err;
     });
 });
 

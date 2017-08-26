@@ -3,7 +3,6 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-const path = require('path');
 
 // -------------------------
 // Configuration
@@ -47,6 +46,8 @@ app.use((err, req, res, next) => {
             error: err,
         },
     });
+    next();
+    throw err;
 });
 
 app.listen(3000);

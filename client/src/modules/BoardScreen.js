@@ -8,6 +8,7 @@ import {
 
     Icon,
     Image,
+    Label,
     Card,
 
     Dimmer,
@@ -57,6 +58,12 @@ const BoardItem = ( board, onExportClick ) => (
                 Last active { moment(board.dateLastActivity).fromNow() }
             </Card.Meta>
             <Card.Description>
+                {
+                    board.pluginData['56d5e249a98895a9797bebb9'] &&
+                    <Label color="green">
+                        Custom Fields Enabled
+                    </Label>
+                }
                 { board.desc }
             </Card.Description>
         </Card.Content>
