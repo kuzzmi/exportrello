@@ -1,6 +1,7 @@
 // Reading dotenv file
 require('dotenv').config();
 
+const PORT = 3001;
 const express = require('express');
 const app = express();
 
@@ -50,4 +51,4 @@ app.use((err, req, res, next) => {
     throw err;
 });
 
-app.listen(3000);
+app.listen(PORT);
