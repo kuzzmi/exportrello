@@ -52,7 +52,7 @@ const PrivateRoute = ({ component, isAuthenticated, ...rest }) => (
 const API = {
     get({ oauth_token, endpoint, version = 1 }) {
         return fetch(
-            `http://localhost:3000/api/v${version}/${endpoint}`,
+            `${process.env.API_URL}/api/v${version}/${endpoint}`,
             {
                 headers: {
                     Authorization: oauth_token,
@@ -136,7 +136,7 @@ class App extends Component {
         this._exportBoard = (boardId, format) => {
             if (format === 'csv') {
                 window.open(
-                    `http://localhost:3000/api/v1/boards/${boardId}/export/${format}?oauth_token=${oauth_token}`,
+                    `${process.env.API_URL}/api/v1/boards/${boardId}/export/${format}?oauth_token=${oauth_token}`,
                     '_blank'
                 );
                 return;
@@ -216,7 +216,7 @@ class App extends Component {
         }));
 
         this.authPopup = window.open(
-            'http://localhost:3000/auth/trello',
+            `${process.env.API_URL}/auth/trello`,
             '_blank',
             'location=yes,height=570,width=520,scrollbars=yes,status=yes'
         );

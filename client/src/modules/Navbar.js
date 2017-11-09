@@ -17,9 +17,9 @@ const NavbarLink = ({ icon, label, to, ...rest }) => (
 );
 
 export default () => (
-    <Menu icon="labeled" style={{ flexShrink: 0 }}>
+    <Menu icon="labeled" style={{ flexShrink: 0, overflow: 'hidden' }}>
         <NavbarLink to="/boards" icon="grid layout" label="Boards" />
-        <NavbarLink to="/user" icon="user circle outline" label="Account" />
+        {/*<NavbarLink to="/user" icon="user circle outline" label="Account" />*/}
         <Menu.Menu position="right">
             <Menu.Item style={{ backgroundColor: '#fbbd08' }}>
                 <Icon name="idea" />

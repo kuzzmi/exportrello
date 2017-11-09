@@ -1,4 +1,7 @@
+const webpack = require('webpack');
 const path = require('path');
+
+const localhost = 'http://localhost:3001';
 
 module.exports = {
     entry: './client/src/index.js',
@@ -51,5 +54,11 @@ module.exports = {
         compress: true,
         port: 8000,
         historyApiFallback: true,
-    }
+    },
+
+    plugins: [
+        new webpack.EnvironmentPlugin({
+            API_URL: localhost,
+        }),
+    ],
 };
