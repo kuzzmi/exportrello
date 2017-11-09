@@ -47,7 +47,7 @@ const isAuthenticated = (req, res, next) => {
 router.get('/trello', (req, res) => {
     if (!req.user) {
         res.redirect(
-            `https://trello.com/1/connect?key=${API_KEY}&name=${name}&return_url=http://localhost:3000/auth/callback`
+            `https://trello.com/1/connect?key=${API_KEY}&name=${name}&return_url=http://localhost:3001/auth/callback`
         );
     } else {
         res.render('callback_post.mustache', {

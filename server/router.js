@@ -24,6 +24,7 @@ router.get('/boards', (req, res) => {
 router.get('/boards/:id/export/:format', (req, res) => {
     const { id, format } = req.params;
     const { oauth_token } = req.user;
+    const exportedOn = new Date();
 
     Trello.getBoardById({ oauth_token, id }).then(board => {
         // TODO:
@@ -65,6 +66,7 @@ router.get('/boards/:id/export/:format', (req, res) => {
                         }
                     }
                 });
+                card.exportedOn = exportedOn;
                 return card;
             });
         });
@@ -91,7 +93,7 @@ router.get('/boards/:id/export/:format', (req, res) => {
                 json2csv({
                     data: cards,
                     // Any fields
-                    fields: ['name'],
+                    // fields: ['name'],
                 }, (err, csv) => {
                     if (err) {
                         throw err;
