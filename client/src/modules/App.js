@@ -60,6 +60,19 @@ const API = {
             }
         );
     },
+
+    post({ oauth_token, data, endpoint, version = 1 }) {
+        return fetch(
+            `${process.env.API_URL}/api/v${version}/${endpoint}`,
+            {
+                headers: {
+                    Authorization: oauth_token,
+                },
+                method: 'POST',
+                body: JSON.stringify(data),
+            }
+        );
+    },
 };
 
 class App extends Component {
@@ -136,7 +149,7 @@ class App extends Component {
         this._exportBoard = (boardId, format) => {
             if (format === 'csv') {
                 window.open(
-                    `${process.env.API_URL}/api/v1/boards/${boardId}/export/${format}?oauth_token=${oauth_token}`,
+                    `${process.env.API_URL}/api/v1/boards/${boardId}/export/${format}?oauth_token=${oauth_token}&f=name`,
                     '_blank'
                 );
                 return;
@@ -149,9 +162,12 @@ class App extends Component {
                     loading: true,
                 },
             }));
-            API.get({
+            API.post({
                 oauth_token,
                 endpoint: `boards/${boardId}/export/${format}`,
+                data: {
+                    fields: ['name', 'listName', 'exportedOn'],
+                },
             })
                 .then(data => data.text())
                 .then(data => {

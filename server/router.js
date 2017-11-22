@@ -23,66 +23,23 @@ router.get('/boards', (req, res) => {
 // Refactor this function to be a bit simpler
 router.get('/boards/:id/export/:format', (req, res) => {
     const { id, format } = req.params;
+    const { f } = req.query;
     const { oauth_token } = req.user;
-    const exportedOn = new Date();
+    const fields = f ? f.split(',') : ['name', 'listName', 'Est FE', 'Est BE', 'Act FE', 'Act BE', 'exportedOn'];
 
-    Trello.getBoardById({ oauth_token, id }).then(board => {
-        // TODO:
-        // Simplify this somehow
-        return Trello.getCardsByBoardId({
-            oauth_token,
-            id,
-        }).then(cards => {
-            return cards.map(card => {
-                // Here we modify the pluginData of a card it a way that it's
-                // easier to get data from Custom Fields power-up
-                card.pluginData = card.pluginData.map(data => {
-                    if (data.value) {
-                        try {
-                            // Get list of fields as a map with id as key
-                            // const normalizedPluginData = normalize(
-                            //     board.pluginData[0].value.fields, 'id'
-                            // );
-
-                            // Try to parse pluginData value, as Custom Fields
-                            // power-up uses JSON stringified
-                            const jsonData = JSON.parse(data.value).fields;
-
-                            // Now, trying to replace ids in JSON data with
-                            // keys from board pluginData
-                            // data.value
-                            Object.keys(jsonData).reduce((acc, cur) => {
-                                if (board.pluginData[cur]) {
-                                    card[board.pluginData[cur].n] = jsonData[cur];
-                                }
-                                return acc;
-                            }, {});
-
-                            // Just in case
-                            // data.boardPluginData = normalizedPluginData;
-                            return data;
-                        } catch (e) {
-                            return data;
-                        }
-                    }
-                });
-                card.exportedOn = exportedOn;
-                return card;
-            });
-        });
+    Trello.getBoardByIdWithCards({
+        oauth_token,
+        id,
     }).then(cards => {
         switch (format) {
             case 'markdown':
-                res.render('markdown_list', {
-                    cards,
-                });
+                res.render('markdown_list', { cards });
                 break;
             case 'json':
                 // JSON export... Straight-forward
                 res.json(cards);
                 break;
             case 'csv':
-
                 // Exporting to CSV.
                 // If a Custom Fields power-up is available, card object
                 // will include fields from the power-up.
@@ -91,9 +48,11 @@ router.get('/boards/:id/export/:format', (req, res) => {
                 // fields should be also passed from the client so we can
                 // specify what we want to export
                 json2csv({
-                    data: cards,
-                    // Any fields
-                    // fields: ['name'],
+                    data: [
+                        ...cards,
+                        { name: '---- 8< ----' },
+                    ],
+                    fields,
                 }, (err, csv) => {
                     if (err) {
                         throw err;
@@ -114,21 +73,3 @@ router.get('/boards/:id/export/:format', (req, res) => {
 });
 
 module.exports = router;
-
-// return Trello.get({
-//     oauth_token,
-//     endpoint: `boards/${board.id}/lists`,
-// }).then(lists => {
-//     return Promise.all(lists.map(list => {
-//         return Trello.get({
-//             oauth_token,
-//             endpoint: `lists/${list.id}/cards?pluginData=true`,
-//         }).then(cards => {
-//                 list.cards = cards;
-//                 return list;
-//             });
-//     }));
-// }).then(lists => {
-//     board.lists = lists;
-//     return board;
-// });

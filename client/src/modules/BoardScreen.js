@@ -37,7 +37,15 @@ const BoardItem = ( board, onExportClick ) => (
     <Card key={ board.id }>
         {
             board.prefs.backgroundImageScaled ?
-                <Image src={ board.prefs.backgroundImageScaled[1].url } /> :
+                <Image>
+                    <Box style={{
+                        height: 192,
+                        backgroundImage: `url('${board.prefs.backgroundImageScaled[1].url}')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        borderRadius: '.125rem',
+                    }} />
+                </Image> :
                 <Image>
                     <Box style={{
                         height: 192,
@@ -67,7 +75,7 @@ const BoardItem = ( board, onExportClick ) => (
                 { board.desc }
             </Card.Description>
         </Card.Content>
-        <Menu attached="bottom">
+        <Menu attached="bottom" icon>
             <Dropdown text="Export as..." item upward
                 options={[
                     <Dropdown.Item key="1" onClick={ () => onExportClick(board.id, 'json') }>
@@ -80,6 +88,14 @@ const BoardItem = ( board, onExportClick ) => (
                         Markdown
                     </Dropdown.Item>,
                 ]} />
+            <Menu.Menu position="right">
+                <Menu.Item
+                    name="editorials"
+                    onClick={ this.handleItemClick }
+                >
+                    <Icon name="cogs" />
+                </Menu.Item>
+            </Menu.Menu>
         </Menu>
     </Card>
 );
